@@ -1359,39 +1359,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-150 space-y-4">
-                    <h3 className="font-bold text-sm text-slate-800 border-b pb-1.5 flex items-center gap-1.5">
-                      <FileSpreadsheet className="w-4.5 h-4.5 text-indigo-500" />
-                      Parámetros Escolares
-                    </h3>
-
-                    <div className="space-y-1.5">
-                      <label className="font-bold block text-slate-500 uppercase text-[9px]">Google Client ID:</label>
-                      <input 
-                        type="text" 
-                        placeholder="Tu ClientID para Oauth" 
-                        value={settings.googleClientId}
-                        onChange={(e) => setSettings(prev => ({ ...prev, googleClientId: e.target.value }))}
-                        className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 font-mono text-xs"
-                      />
-                      <p className="text-[10px] text-slate-400 leading-normal">
-                        ⚠️ **Checklist para evitar Error 401 (invalid_client):**<br />
-                        1. Asegúrate de crear un **ID de cliente de OAuth** (tipo *Web Application*) en tu Google Cloud Console.<br />
-                        2. Agrega la URL actual de esta aplicación ({window.location.origin}) en la sección de **Orígenes de JavaScript autorizados** dentro de Google Cloud Console. Si despliegas a Vercel, agrega el dominio de Vercel allí.
-                      </p>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <label className="font-bold block text-slate-500 uppercase text-[9px]">Webscript App URL:</label>
-                      <input 
-                        type="text" 
-                        placeholder="https://script.google.com/macros/s/..." 
-                        value={settings.sheetsUrl}
-                        onChange={(e) => setSettings(prev => ({ ...prev, sheetsUrl: e.target.value }))}
-                        className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 font-mono"
-                      />
-                    </div>
-                  </div>
 
                   {/* CONEXIÓN ESCOLAR (MOBILE-FRIENDLY GOOGLE CONNECT CARD) */}
                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-150 space-y-4">
