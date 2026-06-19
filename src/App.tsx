@@ -40,15 +40,29 @@ export default function App() {
   // --- CONFIGURACIÓN Y AJUSTES ---
   const [settings, setSettings] = useState<ConfigSettings>(() => {
     const saved = localStorage.getItem('pastTenseMasterySettings');
+    let loaded: ConfigSettings | null = null;
     if (saved) {
       try {
-        return JSON.parse(saved);
+        loaded = JSON.parse(saved);
       } catch (e) {
         console.error("Error loading settings:", e);
       }
     }
+
+    const defaultClientId = "1050263760705-9lp9gkpnr9qe15qf46ijdedcn0k7c5dp.apps.googleusercontent.com";
+    const oldClientIdWithTypo = "1050263760705-91p9gkpnr9qe15qf46ijdedcn0k7c5dp.apps.googleusercontent.com";
+
+    if (loaded) {
+      // Auto-migrate the client ID if they have the old typo version saved
+      if (loaded.googleClientId === oldClientIdWithTypo) {
+        loaded.googleClientId = defaultClientId;
+        localStorage.setItem('pastTenseMasterySettings', JSON.stringify(loaded));
+      }
+      return loaded;
+    }
+
     return {
-      googleClientId: "1050263760705-91p9gkpnr9qe15qf46ijdedcn0k7c5dp.apps.googleusercontent.com",
+      googleClientId: defaultClientId,
       sheetsUrl: "https://script.google.com/macros/s/AKfycbwRiv8YJYyZzGsvbwmBbq4h0ABbekOkBKkD8K6j73QbUOeQq-tedk-64pB9fGD9_-KM8g/exec",
       geminiApiKey: ""
     };
@@ -1306,8 +1320,13 @@ export default function App() {
                         placeholder="Tu ClientID para Oauth" 
                         value={settings.googleClientId}
                         onChange={(e) => setSettings(prev => ({ ...prev, googleClientId: e.target.value }))}
-                        className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 font-mono"
+                        className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 font-mono text-xs"
                       />
+                      <p className="text-[10px] text-slate-400 leading-normal">
+                        ⚠️ **Checklist para evitar Error 401 (invalid_client):**<br />
+                        1. Asegúrate de crear un **ID de cliente de OAuth** (tipo *Web Application*) en tu Google Cloud Console.<br />
+                        2. Agrega la URL actual de esta aplicación ({window.location.origin}) en la sección de **Orígenes de JavaScript autorizados** dentro de Google Cloud Console. Si despliegas a Vercel, agrega el dominio de Vercel allí.
+                      </p>
                     </div>
 
                     <div className="space-y-1.5">
