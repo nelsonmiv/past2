@@ -1,0 +1,6 @@
+{
+  "name": "Past Tense Mastery",
+  "description": "Educational web application to master Simple Past & Past Continuous with Gemini TTS audio guidance and voice recognition.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
