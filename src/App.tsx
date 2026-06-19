@@ -216,19 +216,32 @@ export default function App() {
     // Initialize/Render Google button when SDK is ready or settings clientId change
     const mountGoogleBtn = () => {
       const btnContainer = document.getElementById('google-signin-btn-container-react');
-      if (btnContainer && (window as any).google?.accounts?.id) {
+      const mobileBtnContainer = document.getElementById('google-signin-btn-container-mobile');
+      
+      if ((btnContainer || mobileBtnContainer) && (window as any).google?.accounts?.id) {
         try {
-          btnContainer.innerHTML = "";
           (window as any).google.accounts.id.initialize({
             client_id: settings.googleClientId,
             callback: handleCredentialResponse,
             context: 'signin',
             ux_mode: 'popup'
           });
-          (window as any).google.accounts.id.renderButton(
-            btnContainer,
-            { theme: "outline", size: "medium", text: "signin_with", shape: "rectangular" }
-          );
+
+          if (btnContainer) {
+            btnContainer.innerHTML = "";
+            (window as any).google.accounts.id.renderButton(
+              btnContainer,
+              { theme: "outline", size: "medium", text: "signin_with", shape: "rectangular" }
+            );
+          }
+
+          if (mobileBtnContainer) {
+            mobileBtnContainer.innerHTML = "";
+            (window as any).google.accounts.id.renderButton(
+              mobileBtnContainer,
+              { theme: "outline", size: "medium", text: "signin_with", shape: "rectangular" }
+            );
+          }
         } catch (err) {
           console.error("GSI init error:", err);
         }
@@ -244,7 +257,7 @@ export default function App() {
       }, 300);
       return () => clearInterval(checkGSI);
     }
-  }, [settings.googleClientId, appState.user]);
+  }, [settings.googleClientId, appState.user, activeTab]);
 
   function decodeJwt(token: string) {
     const base64Url = token.split('.')[1];
@@ -1339,6 +1352,58 @@ export default function App() {
                         className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 font-mono"
                       />
                     </div>
+                  </div>
+
+                  {/* CONEXIÓN ESCOLAR (MOBILE-FRIENDLY GOOGLE CONNECT CARD) */}
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-150 space-y-4">
+                    <h3 className="font-bold text-sm text-slate-800 border-b pb-1.5 flex items-center gap-1.5">
+                      <GraduationCap className="w-4.5 h-4.5 text-indigo-500" />
+                      Conexión Cuenta Google
+                    </h3>
+                    
+                    {appState.user ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3 bg-white p-3 rounded-xl border border-slate-150">
+                          <img 
+                            src={appState.user.picture} 
+                            alt="Avatar" 
+                            className="w-10 h-10 rounded-full border border-indigo-150 object-cover"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-slate-800 text-xs truncate">{appState.user.name}</h4>
+                            <p className="text-[10px] text-slate-400 truncate">{appState.user.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button 
+                            type="button"
+                            onClick={() => syncWithGoogleSheets()}
+                            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer shadow-xs"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5" />
+                            Enviar Progreso Manualmente
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={logoutGoogle}
+                            className="px-3 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center"
+                            title="Cerrar sesión"
+                          >
+                            <LogOut className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center space-y-3 py-2 bg-white rounded-xl p-3 border border-slate-150">
+                        <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                          Inicia sesión con tu cuenta escolar de Google para respaldar tus puntos y progreso en vivo.
+                        </p>
+                        <div id="google-signin-btn-container-mobile" className="flex items-center justify-center min-h-[40px]">
+                          <span className="text-xs text-slate-400 italic font-medium">Cargando botón de Google...</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex gap-2">
