@@ -217,46 +217,70 @@ export default function App() {
     const mountGoogleBtn = () => {
       const btnContainer = document.getElementById('google-signin-btn-container-react');
       const mobileBtnContainer = document.getElementById('google-signin-btn-container-mobile');
+      const googleObject = (window as any).google;
       
-      if ((btnContainer || mobileBtnContainer) && (window as any).google?.accounts?.id) {
+      if ((btnContainer || mobileBtnContainer) && googleObject?.accounts?.id) {
+        // 1. Initialize Google Identity safely in its own try/catch to avoid repeat initialization errors
         try {
-          (window as any).google.accounts.id.initialize({
+          googleObject.accounts.id.initialize({
             client_id: settings.googleClientId,
             callback: handleCredentialResponse,
             context: 'signin',
             ux_mode: 'popup'
           });
+        } catch (initErr) {
+          console.debug("GSI already initialized or threw: ", initErr);
+        }
 
-          if (btnContainer) {
+        // 2. Render Desktop button safely in its own try/catch
+        if (btnContainer) {
+          try {
             btnContainer.innerHTML = "";
-            (window as any).google.accounts.id.renderButton(
+            googleObject.accounts.id.renderButton(
               btnContainer,
               { theme: "outline", size: "medium", text: "signin_with", shape: "rectangular" }
             );
+          } catch (renderDesktopErr) {
+            console.error("GSI render desktop error:", renderDesktopErr);
           }
+        }
 
-          if (mobileBtnContainer) {
+        // 3. Render 'Mobile' button safely in its own try/catch
+        if (mobileBtnContainer) {
+          try {
             mobileBtnContainer.innerHTML = "";
-            (window as any).google.accounts.id.renderButton(
+            googleObject.accounts.id.renderButton(
               mobileBtnContainer,
               { theme: "outline", size: "medium", text: "signin_with", shape: "rectangular" }
             );
+          } catch (renderMobileErr) {
+            console.error("GSI render mobile error:", renderMobileErr);
           }
-        } catch (err) {
-          console.error("GSI init error:", err);
         }
       }
     };
 
+    // Try rendering immediately if already loaded, with a tiny delay to ensure DOM is updated
+    const directTimer = setTimeout(() => {
+      mountGoogleBtn();
+    }, 120);
+
+    let checkGSI: any = null;
     if (settings.googleClientId && settings.googleClientId.trim() !== "" && !settings.googleClientId.includes("TU_GOOGLE")) {
-      const checkGSI = setInterval(() => {
+      checkGSI = setInterval(() => {
         if ((window as any).google?.accounts?.id) {
-          mountGoogleBtn();
+          setTimeout(() => {
+            mountGoogleBtn();
+          }, 80);
           clearInterval(checkGSI);
         }
       }, 300);
-      return () => clearInterval(checkGSI);
     }
+
+    return () => {
+      clearTimeout(directTimer);
+      if (checkGSI) clearInterval(checkGSI);
+    };
   }, [settings.googleClientId, appState.user, activeTab]);
 
   function decodeJwt(token: string) {
@@ -714,7 +738,22 @@ export default function App() {
               className={`md:hidden flex items-center justify-center py-1.5 px-3 text-xs rounded-lg transition-all font-semibold ${activeTab === 'settings' ? 'bg-white text-indigo-700 shadow-xs border border-slate-200/50' : 'text-slate-600 hover:text-slate-950'}`}
               title="Configuración de Estudiante y Gemini"
             >
-              <Settings className="w-3.5 h-3.5" />
+              {appState.user ? (
+                <div className="flex items-center gap-1">
+                  <img 
+                    src={appState.user.picture} 
+                    alt="Perfil" 
+                    className="w-4 h-4 rounded-full object-cover border border-indigo-400"
+                    referrerPolicy="no-referrer"
+                  />
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                </div>
+              ) : (
+                <div className="relative">
+                  <Settings className="w-3.5 h-3.5" />
+                  <span className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                </div>
+              )}
             </button>
           </nav>
 
